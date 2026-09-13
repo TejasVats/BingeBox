@@ -1,0 +1,20 @@
+package com.example.bingebox.repository
+
+import java.time.OffsetDateTime
+import java.util.UUID
+
+data class AccountRecord(
+    val id: UUID,
+    val email: String,
+    val passwordHash: String,
+    val emailVerified: OffsetDateTime?
+)
+
+interface AccountRepository{
+
+    suspend fun findByEmail(email: String): AccountRecord?
+
+    suspend fun findById(accountId: UUID): AccountRecord?
+
+    suspend fun create(email: String, passwordHash: String): AccountRecord
+}
