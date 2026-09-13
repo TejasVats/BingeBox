@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.ktor)
+    alias(libs.plugins.kotlinx.serialization)
 }
 
 group = "com.example.bingebox"
@@ -25,4 +26,19 @@ dependencies {
     implementation(libs.ktor.serverCors)
     implementation(libs.ktor.serverStatusPages)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.koin.ktor)
+    implementation(libs.ktor.serverCallId)
+    implementation(libs.ktor.serverOpenapi)
+    implementation(libs.ktor.serverSwagger)
+    implementation(libs.postgresql)
+    implementation(libs.lettuce.core)
+    implementation(libs.flyway.core)
+    implementation(libs.flyway.database.postgresql)
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.dao)
+    implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.java.time)
+    implementation(libs.java.jwt)
+    implementation(libs.argon2.jvm)
+
 }

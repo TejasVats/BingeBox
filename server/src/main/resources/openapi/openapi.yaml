@@ -1,0 +1,183 @@
+openapi: 3.1.0
+info:
+  title: BingeBox API
+  version: 1.0.0
+  description: |
+    The versioned BingeBox backend contract. All `/api/v1` endpoints return JSON.
+    Protected endpoints require an `Authorization: Bearer <access-token>` header.
+servers:
+  - url: http://localhost:8080
+paths:
+  /health:
+    get:
+      summary: Liveness check
+      responses: { '200': { $ref: '#/components/responses/ServiceOk' } }
+  /ready:
+    get:
+      summary: Readiness check
+      responses:
+        '200': { $ref: '#/components/responses/ServiceOk' }
+        '503': { $ref: '#/components/responses/ServiceNotReady' }
+  /api/v1/auth/signup:
+    post:
+      summary: Create an unverified account and send its verification email
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/SignUpRequest' } } } }
+      responses: { '201': { $ref: '#/components/responses/AccountCreated' }, '422': { $ref: '#/components/responses/ValidationError' }, '429': { $ref: '#/components/responses/RateLimited' } }
+  /api/v1/auth/login:
+    post:
+      summary: Log in a verified account
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LoginRequest' } } } }
+      responses: { '200': { $ref: '#/components/responses/LoginAccepted' }, '401': { $ref: '#/components/responses/InvalidCredentials' }, '403': { $ref: '#/components/responses/EmailNotVerified' }, '429': { $ref: '#/components/responses/RateLimited' } }
+  /api/v1/auth/request-verification:
+    post:
+      summary: Request a verification email without exposing account existence
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/EmailRequest' } } } }
+      responses: { '202': { $ref: '#/components/responses/MessageAccepted' } }
+  /api/v1/auth/confirm-verification:
+    post:
+      summary: Verify an email using a single-use token
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/TokenRequest' } } } }
+      responses: { '200': { $ref: '#/components/responses/MessageOk' }, '400': { $ref: '#/components/responses/InvalidToken' } }
+  /api/v1/auth/forgot-password:
+    post:
+      summary: Request a password-reset email without exposing account existence
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/EmailRequest' } } } }
+      responses: { '202': { $ref: '#/components/responses/MessageAccepted' } }
+  /api/v1/auth/reset-password:
+    post:
+      summary: Replace a password with a valid single-use reset token
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ResetPasswordRequest' } } } }
+      responses: { '200': { $ref: '#/components/responses/MessageOk' }, '400': { $ref: '#/components/responses/InvalidReset' } }
+  /api/v1/auth/refresh:
+    post:
+      summary: Rotate a refresh session
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/RefreshRequest' } } } }
+      responses: { '200': { $ref: '#/components/responses/LoginAccepted' }, '401': { $ref: '#/components/responses/InvalidSession' }, '429': { $ref: '#/components/responses/RateLimited' } }
+  /api/v1/auth/logout:
+    post:
+      summary: Revoke a refresh session
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/RefreshRequest' } } } }
+      responses: { '204': { description: Session revoked. } }
+  /api/v1/me:
+    get:
+      summary: Read the current account
+      security: [{ bearerAuth: [] }]
+      responses: { '200': { $ref: '#/components/responses/AccountCreated' }, '401': { $ref: '#/components/responses/InvalidSession' } }
+  /api/v1/content/titles:
+    get:
+      summary: List normalized Watchmode titles
+      security: [{ bearerAuth: [] }]
+      parameters: [ { $ref: '#/components/parameters/Types' }, { $ref: '#/components/parameters/Region' }, { $ref: '#/components/parameters/Page' } ]
+      responses: { '200': { $ref: '#/components/responses/Content' }, '401': { $ref: '#/components/responses/InvalidSession' }, '503': { $ref: '#/components/responses/ContentUnavailable' } }
+  /api/v1/content/search:
+    get:
+      summary: Search normalized Watchmode titles
+      security: [{ bearerAuth: [] }]
+      parameters: [ { name: query, in: query, required: true, schema: { type: string, minLength: 2 } }, { $ref: '#/components/parameters/Types' } ]
+      responses: { '200': { $ref: '#/components/responses/Content' }, '400': { $ref: '#/components/responses/InvalidContentRequest' }, '401': { $ref: '#/components/responses/InvalidSession' } }
+  /api/v1/content/{titleId}:
+    get:
+      summary: Read normalized content details
+      security: [{ bearerAuth: [] }]
+      parameters: [ { $ref: '#/components/parameters/TitleId' } ]
+      responses: { '200': { $ref: '#/components/responses/Content' }, '400': { $ref: '#/components/responses/InvalidContentRequest' }, '404': { $ref: '#/components/responses/ContentNotFound' }, '503': { $ref: '#/components/responses/ContentUnavailable' } }
+  /api/v1/content/{titleId}/sources:
+    get:
+      summary: Read regional streaming sources
+      security: [{ bearerAuth: [] }]
+      parameters: [ { $ref: '#/components/parameters/TitleId' }, { $ref: '#/components/parameters/Region' } ]
+      responses: { '200': { $ref: '#/components/responses/Content' }, '400': { $ref: '#/components/responses/InvalidContentRequest' }, '404': { $ref: '#/components/responses/ContentNotFound' }, '503': { $ref: '#/components/responses/ContentUnavailable' } }
+  /api/v1/library/watchlist:
+    get:
+      summary: Read the current account's watchlist in newest-first order
+      security: [{ bearerAuth: [] }]
+      parameters: [ { $ref: '#/components/parameters/Limit' }, { $ref: '#/components/parameters/Offset' } ]
+      responses: { '200': { $ref: '#/components/responses/WatchlistPage' }, '401': { $ref: '#/components/responses/InvalidSession' }, '422': { $ref: '#/components/responses/ValidationError' } }
+    post:
+      summary: Add a Watchmode title to the current account's watchlist
+      security: [{ bearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/WatchlistRequest' } } } }
+      responses: { '201': { $ref: '#/components/responses/WatchlistItem' }, '401': { $ref: '#/components/responses/InvalidSession' }, '422': { $ref: '#/components/responses/ValidationError' } }
+  /api/v1/library/watchlist/{titleId}:
+    delete:
+      summary: Remove a title from the current account's watchlist
+      security: [{ bearerAuth: [] }]
+      parameters: [ { $ref: '#/components/parameters/TitleId' }, { name: mediaType, in: query, required: true, schema: { $ref: '#/components/schemas/MediaType' } } ]
+      responses: { '204': { description: Watchlist item removed. }, '401': { $ref: '#/components/responses/InvalidSession' }, '404': { $ref: '#/components/responses/NotFound' }, '422': { $ref: '#/components/responses/ValidationError' } }
+  /api/v1/library/history:
+    get:
+      summary: Read the current account's viewing history in newest-first order
+      security: [{ bearerAuth: [] }]
+      parameters: [ { $ref: '#/components/parameters/Limit' }, { $ref: '#/components/parameters/Offset' } ]
+      responses: { '200': { $ref: '#/components/responses/HistoryPage' }, '401': { $ref: '#/components/responses/InvalidSession' }, '422': { $ref: '#/components/responses/ValidationError' } }
+    post:
+      summary: Record a detail-opened or trailer-started event
+      security: [{ bearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ActivityRequest' } } } }
+      responses: { '201': { $ref: '#/components/responses/HistoryItem' }, '401': { $ref: '#/components/responses/InvalidSession' }, '422': { $ref: '#/components/responses/ValidationError' } }
+  /api/v1/ai/recommendations:
+    get: { summary: Get personalized recommendations, security: [{ bearerAuth: [] }], responses: { '200': { $ref: '#/components/responses/AiText' }, '401': { $ref: '#/components/responses/InvalidSession' }, '429': { $ref: '#/components/responses/AiRateLimited' }, '503': { $ref: '#/components/responses/AiUnavailable' } } }
+  /api/v1/ai/insights/{titleId}:
+    get: { summary: Get a grounded content insight, security: [{ bearerAuth: [] }], parameters: [ { $ref: '#/components/parameters/TitleId' } ], responses: { '200': { $ref: '#/components/responses/AiText' }, '400': { $ref: '#/components/responses/InvalidAiRequest' }, '429': { $ref: '#/components/responses/AiRateLimited' }, '503': { $ref: '#/components/responses/AiUnavailable' } } }
+  /api/v1/ai/discovery:
+    get: { summary: Discover titles from natural language, security: [{ bearerAuth: [] }], parameters: [ { name: query, in: query, required: true, schema: { type: string, minLength: 2 } } ], responses: { '200': { $ref: '#/components/responses/AiText' }, '400': { $ref: '#/components/responses/InvalidAiRequest' }, '429': { $ref: '#/components/responses/AiRateLimited' }, '503': { $ref: '#/components/responses/AiUnavailable' } } }
+  /api/v1/ai/viewing-summary:
+    get: { summary: Summarize persisted viewing activity, security: [{ bearerAuth: [] }], responses: { '200': { $ref: '#/components/responses/AiText' }, '401': { $ref: '#/components/responses/InvalidSession' }, '429': { $ref: '#/components/responses/AiRateLimited' }, '503': { $ref: '#/components/responses/AiUnavailable' } } }
+components:
+  securitySchemes: { bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT } }
+  parameters:
+    TitleId: { name: titleId, in: path, required: true, schema: { type: integer, minimum: 1 }, example: 12345 }
+    Types: { name: types, in: query, schema: { type: string, example: movie,tv_series } }
+    Region: { name: region, in: query, schema: { type: string, pattern: '^[A-Z]{2}$', example: US } }
+    Page: { name: page, in: query, schema: { type: integer, minimum: 1, maximum: 250, default: 1 } }
+    Limit: { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+    Offset: { name: offset, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+  schemas:
+    SignUpRequest: { type: object, required: [email, password], properties: { email: { type: string, format: email }, password: { type: string, minLength: 8, format: password } } }
+    LoginRequest: { type: object, required: [email, password], properties: { email: { type: string, format: email }, password: { type: string, format: password } } }
+    EmailRequest: { type: object, required: [email], properties: { email: { type: string, format: email } } }
+    TokenRequest: { type: object, required: [token], properties: { token: { type: string } } }
+    ResetPasswordRequest: { type: object, required: [token, password], properties: { token: { type: string }, password: { type: string, minLength: 8, format: password } } }
+    RefreshRequest: { type: object, required: [refreshToken], properties: { refreshToken: { type: string } } }
+    Account: { type: object, required: [accountId, email, verificationRequired], properties: { accountId: { type: string, format: uuid }, email: { type: string, format: email }, verificationRequired: { type: boolean } } }
+    LoginAccepted: { allOf: [ { $ref: '#/components/schemas/Account' }, { type: object, required: [accessToken, refreshToken], properties: { accessToken: { type: string }, refreshToken: { type: string } } } ] }
+    MediaType: { type: string, enum: [movie, tv_series] }
+    WatchlistRequest: { type: object, required: [titleId, mediaType], properties: { titleId: { type: integer, minimum: 1 }, mediaType: { $ref: '#/components/schemas/MediaType' } } }
+    ActivityRequest: { allOf: [ { $ref: '#/components/schemas/WatchlistRequest' }, { type: object, required: [activityType], properties: { activityType: { type: string, enum: [detail_opened, trailer_started] } } } ] }
+    WatchlistItem: { type: object, required: [titleId, mediaType, addedAt], properties: { titleId: { type: integer }, mediaType: { $ref: '#/components/schemas/MediaType' }, addedAt: { type: string, format: date-time } } }
+    HistoryItem: { allOf: [ { $ref: '#/components/schemas/WatchlistItem' }, { type: object, required: [activityType, occurredAt], properties: { activityType: { type: string, enum: [detail_opened, trailer_started] }, occurredAt: { type: string, format: date-time } } } ] }
+    ApiResponse: { type: object, required: [data], properties: { data: {}, requestId: { type: [string, 'null'] } } }
+    PageMetadata: { type: object, required: [limit, offset, returned], properties: { limit: { type: integer }, offset: { type: integer }, returned: { type: integer }, nextOffset: { type: [integer, 'null'] } } }
+    PaginatedResponse: { type: object, required: [data, page], properties: { data: { type: array, items: {} }, page: { $ref: '#/components/schemas/PageMetadata' }, requestId: { type: [string, 'null'] } } }
+    AiText: { type: object, required: [data], properties: { data: { type: object, required: [text], properties: { text: { type: string } } }, requestId: { type: [string, 'null'] } } }
+    ApiError: { type: object, required: [code, message], properties: { code: { type: string }, message: { type: string }, requestId: { type: [string, 'null'] } } }
+    ValidationError: { allOf: [ { $ref: '#/components/schemas/ApiError' }, { type: object, required: [fields], properties: { fields: { type: array, items: { type: object, required: [field, message], properties: { field: { type: string }, message: { type: string } } } } } } ] }
+    ServiceStatus: { type: object, required: [status], properties: { status: { type: string, example: ok } } }
+    Message: { type: object, required: [message], properties: { message: { type: string } } }
+  responses:
+    ServiceOk: { description: Service is available., content: { application/json: { schema: { $ref: '#/components/schemas/ServiceStatus' } } } }
+    ServiceNotReady: { description: Service configuration is incomplete., content: { application/json: { schema: { $ref: '#/components/schemas/ServiceStatus' } } } }
+    AccountCreated: { description: Account response., content: { application/json: { schema: { $ref: '#/components/schemas/Account' } } } }
+    LoginAccepted: { description: Authenticated session., content: { application/json: { schema: { $ref: '#/components/schemas/LoginAccepted' } } } }
+    MessageOk: { description: Operation completed., content: { application/json: { schema: { $ref: '#/components/schemas/Message' } } } }
+    MessageAccepted: { description: Request accepted., content: { application/json: { schema: { $ref: '#/components/schemas/Message' } } } }
+    WatchlistItem: { description: Watchlist item., content: { application/json: { schema: { allOf: [ { $ref: '#/components/schemas/ApiResponse' }, { type: object, properties: { data: { $ref: '#/components/schemas/WatchlistItem' } } } ] } } } }
+    HistoryItem: { description: Activity item., content: { application/json: { schema: { allOf: [ { $ref: '#/components/schemas/ApiResponse' }, { type: object, properties: { data: { $ref: '#/components/schemas/HistoryItem' } } } ] } } } }
+    WatchlistPage: { description: Watchlist page., content: { application/json: { schema: { $ref: '#/components/schemas/PaginatedResponse' } } } }
+    HistoryPage: { description: History page., content: { application/json: { schema: { $ref: '#/components/schemas/PaginatedResponse' } } } }
+    AiText: { description: Validated AI text., content: { application/json: { schema: { $ref: '#/components/schemas/AiText' } } } }
+    Content: { description: Normalized Watchmode response. }
+    NotFound: { description: Resource not found., content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
+    ContentNotFound: { description: Content is unavailable., content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
+    ContentUnavailable: { description: Watchmode is temporarily unavailable or rate limited., content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
+    InvalidCredentials: { description: Credentials are invalid., content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
+    EmailNotVerified: { description: Email verification is required., content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
+    InvalidToken: { description: Token is invalid, expired, or already used., content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
+    InvalidReset: { description: Reset token or password is invalid., content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
+    InvalidSession: { description: Token or refresh session is invalid., content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
+    InvalidContentRequest: { description: Content request is invalid., content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
+    InvalidAiRequest: { description: AI request is invalid., content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
+    ValidationError: { description: Request validation failed., content: { application/json: { schema: { $ref: '#/components/schemas/ValidationError' } } } }
+    RateLimited: { description: Retry later., content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
+    AiRateLimited: { description: AI request limit reached., content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
+    AiUnavailable: { description: AI or required content data is unavailable., content: { application/json: { schema: { $ref: '#/components/schemas/ApiError' } } } }
