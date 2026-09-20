@@ -40,5 +40,8 @@ dependencies {
     implementation(libs.exposed.java.time)
     implementation(libs.java.jwt)
     implementation(libs.argon2.jvm)
-
+    implementation(libs.ktor.serverAuth)
+    implementation(libs.ktor.serverAuthJwt)
+    implementation(libs.jakarta.mail)
+    runtimeOnly(libs.angus.mail)
 }

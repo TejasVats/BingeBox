@@ -10,7 +10,8 @@ data class ServerConfig (
     val jwtSecret: String,
     val smtpHost: String,
     val smtpPort: Int,
-    val migrateOnStart: Boolean
+    val migrateOnStart: Boolean,
+    val smtpFrom: String
 )
 
 object ServerConfigLoader {
@@ -23,6 +24,7 @@ object ServerConfigLoader {
         smtpHost = environment.requiredValue("bingebox.smtp.host", "BINGEBOX_SMTP_HOST"),
         smtpPort = environment.requiredValue("bingebox.smtp.port", "BINGEBOX_SMTP_PORT").toIntOrNull()
             ?: error("Server configuration value BINGEBOX_SMTP_PORT must be a number."),
+        smtpFrom = environment.requiredValue("bingebox.smtp.from", "BINGEBOX_SMTP_FROM"),
         migrateOnStart = environment.optionalValue("bingebox.database.migrate-on-start", "BINGEBOX_DATABASE_MIGRATE_ON_START")
             ?.toBooleanStrictOrNull()
             ?: true,
