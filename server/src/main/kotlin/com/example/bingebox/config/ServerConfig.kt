@@ -6,12 +6,14 @@ data class ServerConfig (
     val databaseUrl: String,
     val databaseUser: String,
     val databasePassword: String,
-    val redisUrl: String,
+    val redisUri: String,
     val jwtSecret: String,
     val smtpHost: String,
     val smtpPort: Int,
     val migrateOnStart: Boolean,
-    val smtpFrom: String
+    val smtpFrom: String,
+    val watchModeApiKey: String,
+    val watchModeBaseUrl: String
 )
 
 object ServerConfigLoader {
@@ -19,7 +21,7 @@ object ServerConfigLoader {
         databaseUrl = environment.requiredValue("bingebox.database.url", "BINGEBOX_DATABASE_URL"),
         databaseUser = environment.requiredValue("bingebox.database.user", "BINGEBOX_DATABASE_USER"),
         databasePassword = environment.requiredValue("bingebox.database.password", "BINGEBOX_DATABASE_PASSWORD"),
-        redisUrl = environment.requiredValue("bingebox.redis.uri", "BINGEBOX_REDIS_URI"),
+        redisUri = environment.requiredValue("bingebox.redis.uri", "BINGEBOX_REDIS_URI"),
         jwtSecret = environment.requiredValue("bingebox.jwt.secret", "BINGEBOX_JWT_SECRET"),
         smtpHost = environment.requiredValue("bingebox.smtp.host", "BINGEBOX_SMTP_HOST"),
         smtpPort = environment.requiredValue("bingebox.smtp.port", "BINGEBOX_SMTP_PORT").toIntOrNull()
@@ -28,6 +30,8 @@ object ServerConfigLoader {
         migrateOnStart = environment.optionalValue("bingebox.database.migrate-on-start", "BINGEBOX_DATABASE_MIGRATE_ON_START")
             ?.toBooleanStrictOrNull()
             ?: true,
+        watchModeApiKey = environment.requiredValue("bingebox.watchmode.api-key", "BINGEBOX_WATCHMODE_API_KEY"),
+        watchModeBaseUrl = environment.optionalValue("bingebox.watchmode.base-url", "BINGEBOX_WATCHMODE_BASE_URL")?: "https://api.watchmode.com/v1"
     )
 
     private fun ApplicationEnvironment.requiredValue(propertyName: String, environmentName: String) : String =

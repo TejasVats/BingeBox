@@ -16,7 +16,7 @@ fun Route.systemRoute(config: ServerConfig){
         call.respond(HttpStatusCode.OK,ServiceStatus(status = "ok"))
     }
     get("/ready"){
-        val isConfigured = config.databaseUrl.isNotBlank() && config.redisUrl.isNotBlank()
+        val isConfigured = config.databaseUrl.isNotBlank() && config.redisUri.isNotBlank()
         call.respond(
             if(isConfigured) HttpStatusCode.OK else HttpStatusCode.ServiceUnavailable,
             ServiceStatus(if (isConfigured) "ready" else "not_ready")

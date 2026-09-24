@@ -13,6 +13,9 @@ import com.example.bingebox.repository.ExposedAccountTokenRepository
 import com.example.bingebox.repository.ExposedRefreshSessionRepository
 import com.example.bingebox.repository.RefreshSessionRepository
 import com.example.bingebox.security.RedisRateLimiter
+import com.example.bingebox.watchmode.ContentResponseCache
+import com.example.bingebox.watchmode.WatchModeClient
+import com.example.bingebox.watchmode.WatchModeResponseCache
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -25,6 +28,8 @@ fun serverModule(config: ServerConfig): Module = module {
     single <AccountTokenRepository>{ ExposedAccountTokenRepository() }
     single <EmailSender>{ SmtpEmailSender(get()) }
     single { RedisRateLimiter(get()) }
+    single <ContentResponseCache> { WatchModeResponseCache(get()) }
+    single { WatchModeClient(get(), get()) }
     single { AuthService(get(), get(), get(),
         get(),get(), get()) }
 

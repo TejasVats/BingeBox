@@ -7,6 +7,7 @@ import com.example.bingebox.database.DatabaseMigrations
 import com.example.bingebox.di.serverModule
 import com.example.bingebox.plugins.configureHttp
 import com.example.bingebox.routes.authRoutes
+import com.example.bingebox.routes.contentRoutes
 import com.example.bingebox.routes.systemRoute
 import io.ktor.server.application.*
 import io.ktor.server.auth.Authentication
@@ -44,5 +45,7 @@ fun Application.module() {
     routing {
         systemRoute(config)
         authRoutes(getKoin().get(), getKoin().get())
+        contentRoutes(getKoin().get())
     }
 }
+// 1:06:40
