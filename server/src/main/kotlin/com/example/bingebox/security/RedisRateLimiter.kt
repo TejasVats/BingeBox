@@ -5,7 +5,7 @@ import io.lettuce.core.RedisClient
 import kotlin.getValue
 
 class RedisRateLimiter(config: ServerConfig) {
-    private val commands by lazy { RedisClient.create(config.redisUrl).connect().sync() }
+    private val commands by lazy { RedisClient.create(config.redisUri).connect().sync() }
 
     fun allows(action: String, identity: String, limit: Long = 5) = runCatching {
         val key = "rate-limit:$action:${identity.lowercase()}"
