@@ -11,7 +11,11 @@ import com.example.bingebox.repository.AccountTokenRepository
 import com.example.bingebox.repository.ExposedAccountRepository
 import com.example.bingebox.repository.ExposedAccountTokenRepository
 import com.example.bingebox.repository.ExposedRefreshSessionRepository
+import com.example.bingebox.repository.ExposedViewingHistoryRepository
+import com.example.bingebox.repository.ExposedWatchlistRepository
 import com.example.bingebox.repository.RefreshSessionRepository
+import com.example.bingebox.repository.ViewingHistoryRepository
+import com.example.bingebox.repository.WatchListRepository
 import com.example.bingebox.security.RedisRateLimiter
 import com.example.bingebox.watchmode.ContentResponseCache
 import com.example.bingebox.watchmode.WatchModeClient
@@ -32,5 +36,6 @@ fun serverModule(config: ServerConfig): Module = module {
     single { WatchModeClient(get(), get()) }
     single { AuthService(get(), get(), get(),
         get(),get(), get()) }
-
+    single <WatchListRepository> { ExposedWatchlistRepository() }
+    single <ViewingHistoryRepository> { ExposedViewingHistoryRepository() }
 }

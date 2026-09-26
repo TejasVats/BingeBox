@@ -8,6 +8,7 @@ import com.example.bingebox.di.serverModule
 import com.example.bingebox.plugins.configureHttp
 import com.example.bingebox.routes.authRoutes
 import com.example.bingebox.routes.contentRoutes
+import com.example.bingebox.routes.libraryRoutes
 import com.example.bingebox.routes.systemRoute
 import io.ktor.server.application.*
 import io.ktor.server.auth.Authentication
@@ -28,15 +29,15 @@ fun main() {
 fun Application.module() {
     val config = ServerConfigLoader.load(environment)
     DatabaseMigrations.connect(config)
-    if(config.migrateOnStart){
+    if (config.migrateOnStart) {
         DatabaseMigrations.migrate(config)
     }
-    install(Koin){
+    install(Koin) {
         modules(serverModule(config))
     }
     configureHttp()
-    install(Authentication){
-        jwt("auth-jwt"){
+    install(Authentication) {
+        jwt("auth-jwt") {
             verifier(JWT.require(Algorithm.HMAC256(config.jwtSecret)).build())
             validate { credentials -> credentials.payload.subject?.let { JWTPrincipal(credentials.payload) } }
 
@@ -46,6 +47,7 @@ fun Application.module() {
         systemRoute(config)
         authRoutes(getKoin().get(), getKoin().get())
         contentRoutes(getKoin().get())
+        libraryRoutes(getKoin().get(), getKoin().get())
     }
+    // 44:21
 }
-// 1:06:40
