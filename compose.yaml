@@ -10,7 +10,7 @@ services:
       BINGEBOX_DATABASE_USER: ${POSTGRES_USER:-bingebox}
       BINGEBOX_DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-bingebox_local_password}
       BINGEBOX_REDIS_URI: redis://redis:6379
-      BINGEBOX_JWT_SECRET: ${BINGEBOX_JWT_SECRET:-uIXhRy5T5ccPOZs9h2zaQHwBiwvsPr53XsdpbL821CU}
+      BINGEBOX_JWT_SECRET: ${BINGEBOX_JWT_SECRET:-replace-this-local-development-secret-before-deploying}
       BINGEBOX_SMTP_HOST: mailpit
       BINGEBOX_SMTP_PORT: 1025
       BINGEBOX_SMTP_FROM: ${BINGEBOX_SMTP_FROM:-noreply@bingebox.local}
