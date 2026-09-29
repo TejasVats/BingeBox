@@ -6,6 +6,7 @@ import com.example.bingebox.config.ServerConfigLoader
 import com.example.bingebox.database.DatabaseMigrations
 import com.example.bingebox.di.serverModule
 import com.example.bingebox.plugins.configureHttp
+import com.example.bingebox.routes.aiRoutes
 import com.example.bingebox.routes.authRoutes
 import com.example.bingebox.routes.contentRoutes
 import com.example.bingebox.routes.libraryRoutes
@@ -48,6 +49,6 @@ fun Application.module() {
         authRoutes(getKoin().get(), getKoin().get())
         contentRoutes(getKoin().get())
         libraryRoutes(getKoin().get(), getKoin().get())
+        aiRoutes(getKoin().get(), getKoin().get())
     }
-    // 44:21
 }
