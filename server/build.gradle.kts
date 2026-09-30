@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.ktor.serverCore)
     implementation(libs.ktor.serverNetty)
     testImplementation(libs.ktor.serverTestHost)
+    testImplementation(libs.ktor.client.mock)
     testImplementation(libs.kotlin.testJunit)
     implementation(libs.koin.core)
     implementation(libs.ktor.client.cio)
@@ -44,4 +45,6 @@ dependencies {
     implementation(libs.ktor.serverAuthJwt)
     implementation(libs.jakarta.mail)
     runtimeOnly(libs.angus.mail)
+    testImplementation(libs.testcontainers.junit)
+    testImplementation(libs.testcontainers.postgresql)
 }
