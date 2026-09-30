@@ -32,7 +32,6 @@ class GroqClient(
 
     private val logger = LoggerFactory.getLogger(GroqClient::class.java)
     private val json = Json { ignoreUnknownKeys = true }
-
     suspend fun complete(
         model: GroqModel,
         systemPrompt: String,
