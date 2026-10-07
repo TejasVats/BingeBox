@@ -18,30 +18,38 @@ import org.jetbrains.compose.resources.painterResource
 
 import bingebox.app.shared.generated.resources.Res
 import bingebox.app.shared.generated.resources.compose_multiplatform
+import com.example.bingebox.presentation.AuthScreenContent
+import com.example.bingebox.presentation.AuthViewModel
+import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 
 @Composable
 @Preview
 fun App() {
+    val authViewModel = koinInject<AuthViewModel>()
+    val authState = authViewModel.uiState
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(key1 = Unit) {
+        authViewModel.restoreSession()
+    }
+
     MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
-            }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
+        if (authState.account == null) {
+            AuthScreenContent(authViewModel)
+        } else {
+            Column(
+                modifier = Modifier
+                    .background(
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    )
+                    .safeContentPadding()
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Signed in as ${authState.account.email}")
+                Button(onClick = { scope.launch { authViewModel.logout() } }) {
+                    Text("Sign out")
                 }
             }
         }

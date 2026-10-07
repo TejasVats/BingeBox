@@ -6,7 +6,8 @@ import com.example.bingebox.api.ValidationErrorResponse
 import com.example.bingebox.auth.AuthResult
 import com.example.bingebox.auth.AuthService
 import com.example.bingebox.auth.LoginResult
-import com.example.bingebox.models.AccountCreatedResponse
+import com.example.bingebox.core.auth.AccountResponse
+import com.example.bingebox.core.auth.AuthSession
 import com.example.bingebox.models.EmailRequest
 import com.example.bingebox.models.LoginAcceptedResponse
 import com.example.bingebox.models.LoginRequest
@@ -54,7 +55,7 @@ fun Route.authRoutes(authService: AuthService, rateLimiter: RedisRateLimiter) {
 
             is AuthResult.Success -> call.respond(
                 HttpStatusCode.Created,
-                AccountCreatedResponse(
+                AccountResponse(
                     result.value.id.toString(),
                     result.value.email
                 )
@@ -74,7 +75,7 @@ fun Route.authRoutes(authService: AuthService, rateLimiter: RedisRateLimiter) {
         when (val result = authService.login(request.email, request.password)) {
             is LoginResult.Success -> call.respond(
                 HttpStatusCode.OK,
-                LoginAcceptedResponse(
+                AuthSession(
                     accountId = result.account.id.toString(),
                     email = result.account.email,
                     accessToken = result.tokens.accessTokens,
@@ -179,7 +180,7 @@ fun Route.authRoutes(authService: AuthService, rateLimiter: RedisRateLimiter) {
                 )
             else
                 call.respond(
-                    AccountCreatedResponse(
+                    AccountResponse(
                         accountId = account.id.toString(),
                         email = account.email,
                         verificationRequired = account.emailVerifiedAt == null

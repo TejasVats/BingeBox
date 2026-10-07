@@ -1,6 +1,7 @@
 package com.example.bingebox.auth
 
 import com.example.bingebox.EmailSender
+import com.example.bingebox.core.auth.AuthSession
 import com.example.bingebox.repository.AccountRecord
 import com.example.bingebox.repository.AccountRepository
 import com.example.bingebox.repository.AccountTokenRepository
@@ -92,7 +93,7 @@ class AuthService(
         return true
     }
 
-    suspend fun refresh(refreshToken: String): SessionToken? {
+    suspend fun refresh(refreshToken: String): AuthSession? {
         val session = refreshSessionRepository
             .findActive(tokenService.hashOpaqueToken(refreshToken)) ?: return null
         val account = accountRepository.findById(session.accountId) ?: return null
@@ -103,9 +104,11 @@ class AuthService(
             tokenService.hashOpaqueToken(replacement),
             OffsetDateTime.now(ZoneOffset.UTC).plusDays(30)
         )
-        return SessionToken(
-            tokenService.createAccessToken(account),
-            replacement
+        return AuthSession(
+            accountId = account.id.toString(),
+            email = account.email,
+            accessToken = tokenService.createAccessToken(account),
+            refreshToken = replacement
         )
     }
 

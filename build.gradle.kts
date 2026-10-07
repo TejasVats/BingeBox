@@ -9,6 +9,6 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform) apply false
     alias(libs.plugins.ktor) apply false
     alias(libs.plugins.androidxRoom3) apply false
-    alias(libs.plugins.kotlinx.serialization) apply false
+    alias(libs.plugins.kotlinSerialization) apply false
     alias(libs.plugins.ksp) apply false
 }
