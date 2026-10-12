@@ -81,6 +81,7 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.androidx.room3.runtime)
+            implementation(libs.androidx.navigation3.runtime)
 
         }
         iosMain.dependencies {

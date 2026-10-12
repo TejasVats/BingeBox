@@ -1,6 +1,6 @@
-package com.example.bingebox.data.repository
+package com.example.bingebox.data.auth.repository
 
-import com.example.bingebox.auth.BingeBoxApiClient
+import com.example.bingebox.data.auth.remote.BingeBoxApiClient
 import com.example.bingebox.core.auth.AccountResponse
 import com.example.bingebox.core.auth.AuthSession
 import com.example.bingebox.core.auth.EmailRequest
@@ -9,7 +9,7 @@ import com.example.bingebox.core.auth.MessageResponse
 import com.example.bingebox.core.auth.ResetPasswordRequest
 import com.example.bingebox.core.auth.SignUpRequest
 import com.example.bingebox.core.auth.TokenRequest
-import com.example.bingebox.domain.repository.AuthRepository
+import com.example.bingebox.domain.auth.AuthRepository
 
 class AuthRepositoryImp(
     val apiClient: BingeBoxApiClient

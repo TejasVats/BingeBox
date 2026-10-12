@@ -1,10 +1,10 @@
 package com.example.bingebox
 
+import com.example.bingebox.core.content.ContentDetailsResponse
 import com.example.bingebox.groq.AiAccountSignals
 import com.example.bingebox.groq.AiPromptBuilder
 import com.example.bingebox.repository.ViewingHistoryRecord
 import com.example.bingebox.repository.WatchListItemRecord
-import com.example.bingebox.watchmode.ContentDetails
 import java.time.OffsetDateTime
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -36,7 +36,7 @@ class AiPromptBuilderTest {
     fun `content prompt is grounded in provided Watchmode metadata`() {
         val prompt =
             AiPromptBuilder().contentInsight(
-                ContentDetails(7, "Arrival", "movie", "A linguist meets visitors.", 116, 2016),
+                ContentDetailsResponse(7, "Arrival", "movie", "A linguist meets visitors.", 116, 2016),
             )
 
         assertContains(prompt, "title=Arrival")

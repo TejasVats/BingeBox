@@ -1,12 +1,12 @@
-package com.example.bingebox.presentation
+package com.example.bingebox.presentation.auth
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.example.bingebox.auth.BingeBoxApiException
+import com.example.bingebox.data.auth.remote.BingeBoxApiException
 import com.example.bingebox.core.auth.AccountResponse
-import com.example.bingebox.domain.repository.AuthRepository
+import com.example.bingebox.domain.auth.AuthRepository
 
 enum class AuthScreen {
     SignUp,

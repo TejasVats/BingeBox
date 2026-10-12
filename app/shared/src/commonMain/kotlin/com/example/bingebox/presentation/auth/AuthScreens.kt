@@ -1,4 +1,4 @@
-package com.example.bingebox.presentation
+package com.example.bingebox.presentation.auth
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -86,7 +86,7 @@ private fun PasswordField(
     onValueChange = viewModel::updatePassword,
     modifier = Modifier.fillMaxWidth(),
     label = { Text("Password") },
-    visualTransformation = PasswordVisualTransformation(),
+    visualTransformation =PasswordVisualTransformation(),
     singleLine = true,
 )
 

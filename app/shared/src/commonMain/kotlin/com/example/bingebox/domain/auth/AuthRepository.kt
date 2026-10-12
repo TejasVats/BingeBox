@@ -1,9 +1,8 @@
-package com.example.bingebox.domain.repository
+package com.example.bingebox.domain.auth
 
 import com.example.bingebox.core.auth.AccountResponse
 import com.example.bingebox.core.auth.AuthSession
 import com.example.bingebox.core.auth.MessageResponse
-import io.ktor.http.ContentType
 
 interface AuthRepository {
     suspend fun signUp(
