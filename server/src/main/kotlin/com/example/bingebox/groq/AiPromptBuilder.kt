@@ -1,8 +1,8 @@
 package com.example.bingebox.groq
 
+import com.example.bingebox.core.content.ContentDetailsResponse
 import com.example.bingebox.repository.ViewingHistoryRecord
 import com.example.bingebox.repository.WatchListItemRecord
-import com.example.bingebox.watchmode.ContentDetails
 
 data class AiAccountSignals(
     val watchlist: List<WatchListItemRecord>,
@@ -19,7 +19,7 @@ class AiPromptBuilder {
         Return concise recommendations and clearly say when signals are insufficient.
         """.trimIndent()
 
-    fun contentInsight(content: ContentDetails): String =
+    fun contentInsight(content: ContentDetailsResponse): String =
         """
         Give a concise, spoiler-aware insight based only on this Watchmode metadata.
         ${content.describe()}
@@ -28,7 +28,7 @@ class AiPromptBuilder {
 
     fun discovery(
         query: String,
-        candidates: List<ContentDetails>,
+        candidates: List<ContentDetailsResponse>,
     ): String =
         """
         Interpret the discovery request using only the listed Watchmode candidates. Do not recommend titles outside the candidates.
@@ -45,7 +45,7 @@ class AiPromptBuilder {
         """.trimIndent()
 }
 
-private fun ContentDetails.describe(): String =
+private fun ContentDetailsResponse.describe(): String =
     listOfNotNull(
         "id=$id",
         "title=$title",

@@ -1,5 +1,7 @@
-package com.example.bingebox.auth
+package com.example.bingebox.data.auth.remote
 
+import com.example.bingebox.data.auth.local.AuthTokenStorage
+import com.example.bingebox.data.auth.local.StoredAuthTokens
 import com.example.bingebox.core.auth.AccountResponse
 import com.example.bingebox.core.auth.ApiErrorResponse
 import com.example.bingebox.core.auth.AuthSession
@@ -10,13 +12,22 @@ import com.example.bingebox.core.auth.RefreshRequest
 import com.example.bingebox.core.auth.ResetPasswordRequest
 import com.example.bingebox.core.auth.SignUpRequest
 import com.example.bingebox.core.auth.TokenRequest
+import com.example.bingebox.core.content.ContentDetailsResponse
+import com.example.bingebox.core.content.ContentPageResponse
+import com.example.bingebox.core.content.ContentSummaryResponse
+import com.example.bingebox.core.content.StreamingSourceResponse
+import com.example.bingebox.core.library.ActivityRequest
+import com.example.bingebox.core.library.ApiDataResponse
+import com.example.bingebox.core.library.ViewingHistoryResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -56,10 +67,10 @@ class BingeBoxApiClient(
 
     suspend fun currentAccount(): AccountResponse? {
         if (tokenStorage.read() == null) return null
-        var response = authenticatedGet("/api/v1/me")
+        var response = authenticatedGetResponse("/api/v1/me")
         if (response.status == HttpStatusCode.Unauthorized && !refreshSession()) return null
         if (response.status == HttpStatusCode.Unauthorized) response =
-            authenticatedGet("/api/v1/me")
+            authenticatedGetResponse("/api/v1/me")
         return if (response.status.isSuccess()) response.body() else null
     }
 
@@ -69,9 +80,75 @@ class BingeBoxApiClient(
         tokenStorage.clear()
     }
 
-    private suspend fun authenticatedGet(path: String) =
+    suspend fun listContentTitles(
+        types: String = "movies, tv_series",
+        region: String? = null,
+        page: Int = 1
+    ): ContentPageResponse =
+        authenticatedGet(
+            "/api/v1/content/titles",
+            mapOf(
+                "types" to types,
+                "region" to region,
+                "page" to page.toString()
+            ),
+        )
+
+    suspend fun searchContent(
+        query: String,
+        types: String? = null
+    ): List<ContentSummaryResponse> =
+        authenticatedGet(
+            "/api/v1/content/search",
+            mapOf(
+                "query" to query,
+                "types" to types,
+
+                )
+        )
+
+    suspend fun contentDetails(titleId: Long): ContentDetailsResponse =
+        authenticatedGet("/api/v1/content/$titleId")
+
+    suspend fun contentSources(
+        titleId: Long,
+        region: String? = null
+    ): List<StreamingSourceResponse> =
+        authenticatedGet(
+            "api/v1/content?$titleId/sources",
+            mapOf("region" to region)
+        )
+
+    suspend fun recordViewingActivity(request: ActivityRequest): ViewingHistoryResponse =
+        authenticatedPost<ApiDataResponse<ViewingHistoryResponse>>(
+            "api/v1/library/history",
+            request
+        ).data
+
+    private suspend inline fun <reified Response> authenticatedGet(
+        path: String,
+        queryParameters: Map<String, String?> = emptyMap()
+    ): Response {
+        var response = authenticatedGetResponse(path, queryParameters)
+        if (response.status == HttpStatusCode.Unauthorized && refreshSession()) {
+            response = authenticatedGetResponse(path, queryParameters)
+        }
+        if (!response.status.isSuccess()) {
+            throw response.toApiException()
+        }
+        return response.body()
+    }
+
+
+    private suspend fun authenticatedGetResponse(
+        path: String,
+        queryParameters: Map<String, String?> = emptyMap()
+    ) =
         httpClient.get(url(path)) {
             accept(ContentType.Application.Json)
+            queryParameters.forEach { (key, value) ->
+                if (value != null) parameter(key, value)
+            }
             tokenStorage.read()
                 ?.let { header(HttpHeaders.Authorization, "Bearer ${it.accessToken}") }
         }
@@ -92,6 +169,30 @@ class BingeBoxApiClient(
         return true
     }
 
+    private suspend inline fun <reified Response> authenticatedPost(
+        path: String,
+        request: Any,
+    ): Response {
+        var response = authenticatedPostResponse(path, request)
+        if (response.status == HttpStatusCode.Unauthorized && refreshSession()) {
+            response = authenticatedPostResponse(path, request)
+        }
+        if (!response.status.isSuccess()) {
+            throw response.toApiException()
+        }
+        return response.body()
+    }
+
+    private suspend fun authenticatedPostResponse(
+        path: String,
+        request: Any,
+    ) = httpClient.post(url(path)) {
+        accept(ContentType.Application.Json)
+        contentType(ContentType.Application.Json)
+        setBody(request)
+        tokenStorage.read()?.let { header(HttpHeaders.Authorization, "Bearer ${it.accessToken}") }
+    }
+
     private suspend inline fun <reified Response> post(
         path: String,
         request: Any,
@@ -107,12 +208,20 @@ class BingeBoxApiClient(
             return Unit as Response
         }
         if (!response.status.isSuccess()) {
-            throw BingeBoxApiException(
-                statusCode = response.status.value,
-                message = response.body<ApiErrorResponse>().message
-            )
+            throw response.toApiException()
         }
         return response.body()
+    }
+
+    private suspend fun HttpResponse.toApiException(): BingeBoxApiException {
+        val error = body<ApiErrorResponse>()
+        return BingeBoxApiException(
+            status.value,
+            error.fields
+                .takeIf { it.isNotEmpty() }
+                ?.joinToString(separator = "\n") { it.message }
+                ?: error.message
+        )
     }
 
     private fun url(path: String): String = configuration.baseUrl.trim('/') + path

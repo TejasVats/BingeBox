@@ -1,6 +1,10 @@
 package com.example.bingebox.watchmode
 
 import com.example.bingebox.config.ServerConfig
+import com.example.bingebox.core.content.ContentDetailsResponse
+import com.example.bingebox.core.content.ContentPageResponse
+import com.example.bingebox.core.content.ContentSummaryResponse
+import com.example.bingebox.core.content.StreamingSourceResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
@@ -22,7 +26,7 @@ class WatchModeClient(
         types: String,
         region: String?,
         page: Int
-    ): WatchModeResults<ContentPage> = request(
+    ): WatchModeResults<ContentPageResponse> = request(
         "list-titles",
         mapOf(
             "types" to types, "page" to page.toString()
@@ -32,7 +36,7 @@ class WatchModeClient(
         json.decodeFromString<WatchModeListDto>(it).toPage()
     }
 
-    suspend fun search(query: String, types: String?): WatchModeResults<List<ContentSummary>> =
+    suspend fun search(query: String, types: String?): WatchModeResults<List<ContentSummaryResponse>> =
         request(
             "search",
             mapOf("search_field" to "name", "search_value" to query) + optional("types", types),
@@ -41,18 +45,18 @@ class WatchModeClient(
             json.decodeFromString<WatchModeSearchDTO>(it).titleResults.map { result -> result.toSummary() }
         }
 
-    suspend fun details(id: Long): WatchModeResults<ContentDetails> =
+    suspend fun details(id: Long): WatchModeResults<ContentDetailsResponse> =
         request("title/$id/details", emptyMap(), "details-$id") {
             json.decodeFromString<WatchModeDetailsDTO>(it).toDetails()
         }
 
-    suspend fun sources(id: Long, region: String?): WatchModeResults<List<StreamingSource>> =
+    suspend fun sources(id: Long, region: String?): WatchModeResults<List<StreamingSourceResponse>> =
         request(
             "title/$id/sources", optional("regions", region),
             "sources-$id-$region"
         ) {
             json.decodeFromString<List<WatchModeSourceDTO>>(it).map { source ->
-                StreamingSource(
+                StreamingSourceResponse(
                     source.id,
                     source.name,
                     source.type,
@@ -84,7 +88,7 @@ class WatchModeClient(
             }
             when (response.status) {
                 HttpStatusCode.OK -> response.bodyAsText().let { body ->
-                    cache.write(cacheKey, body);
+                    cache.write(cacheKey, body)
                     WatchModeResults.Success(mapper(body))
                 }
 
@@ -102,8 +106,8 @@ class WatchModeClient(
         private fun createHttpClient() = HttpClient(CIO)
         {
             install(HttpTimeout) {
-                requestTimeoutMillis = 6_000;
-                connectTimeoutMillis = 3_000;
+                requestTimeoutMillis = 6_000
+                connectTimeoutMillis = 3_000
                 socketTimeoutMillis = 6_000
             }
         }

@@ -1,46 +1,10 @@
 package com.example.bingebox.watchmode
 
+import com.example.bingebox.core.content.ContentDetailsResponse
+import com.example.bingebox.core.content.ContentPageResponse
+import com.example.bingebox.core.content.ContentSummaryResponse
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-
-@Serializable
-
-data class ContentPage(
-    val items: List<ContentSummary>,
-    val page: Int,
-    val totalPages: Int,
-    val totalResults: Int
-)
-
-@Serializable
-data class ContentSummary(
-    val id: Long,
-    val title: String,
-    val type: String,
-    val year: Int? = null,
-    val imdbId: String? = null
-)
-
-@Serializable
-data class ContentDetails(
-    val id: Long,
-    val title: String,
-    val type: String,
-    val overview: String? = null,
-    val runtimeMinutes: Int? = null,
-    val year: Int? = null,
-    val releaseDate: String? = null,
-    val trailerUrl: String? = null,
-    val similarTitleIds: List<Long> = emptyList()
-)
-
-@Serializable
-data class StreamingSource(
-    val id: Int,
-    val name: String,
-    val type: String,
-    val webUrl: String? = null
-)
 
 @Serializable
 internal data class WatchModeListDto(
@@ -96,15 +60,15 @@ internal data class WatchModeSourceDTO(
     val webUrl: String? = null
 )
 
-internal fun WatchModeTitleDTO.toSummary() = ContentSummary(
+internal fun WatchModeTitleDTO.toSummary() = ContentSummaryResponse(
     id, title ?: name ?: "Untitled", type, year, imdbId
 )
 
-internal fun WatchModeListDto.toPage() = ContentPage(
+internal fun WatchModeListDto.toPage() = ContentPageResponse(
     items = titles.map { it.toSummary() }, page, totalPages, totalResults
 )
 
-internal fun WatchModeDetailsDTO.toDetails() = ContentDetails(
+internal fun WatchModeDetailsDTO.toDetails() = ContentDetailsResponse(
     id,
     title,
     type,

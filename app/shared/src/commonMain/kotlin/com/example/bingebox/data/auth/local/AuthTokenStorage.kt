@@ -1,4 +1,4 @@
-package com.example.bingebox.auth
+package com.example.bingebox.data.auth.local
 
 data class StoredAuthTokens(
     val accessToken: String,

@@ -1,7 +1,7 @@
 package com.example.bingebox
 
 import com.example.bingebox.config.ServerConfig
-import com.example.bingebox.watchmode.ContentPage
+import com.example.bingebox.core.content.ContentPageResponse
 import com.example.bingebox.watchmode.ContentResponseCache
 import com.example.bingebox.watchmode.WatchModeClient
 import com.example.bingebox.watchmode.WatchModeResults
@@ -33,7 +33,7 @@ class WatchmodeClientTest {
                         },
                     ),
                 ).listTitles("movie,tv_series", null, 1)
-            val page = assertIs<WatchModeResults.Success<*>>(result).value as ContentPage
+            val page = assertIs<WatchModeResults.Success<*>>(result).value as ContentPageResponse
             assertEquals("Cached title", page.items.single().title)
         }
 

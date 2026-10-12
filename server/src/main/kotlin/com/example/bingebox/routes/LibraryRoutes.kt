@@ -4,6 +4,9 @@ import com.example.bingebox.api.API_VERSION_PREFIX
 import com.example.bingebox.api.ApiResponse
 import com.example.bingebox.api.PaginatedResponse
 import com.example.bingebox.api.pageMetadata
+import com.example.bingebox.core.library.ActivityRequest
+import com.example.bingebox.core.library.WatchListItemResponse
+import com.example.bingebox.core.library.WatchListRequest
 import com.example.bingebox.plugins.ApiError
 import com.example.bingebox.repository.ViewingHistoryRecord
 import com.example.bingebox.repository.ViewingHistoryRepository
@@ -23,15 +26,6 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import kotlinx.serialization.Serializable
 import java.util.UUID
-
-@Serializable
-data class WatchListRequest(val titleId: Long, val mediaType: String)
-
-@Serializable
-data class ActivityRequest(val titleId: Long, val mediaType: String, val activityType: String)
-
-@Serializable
-data class WatchListItemResponse(val titleId: Long, val mediaType: String, val addedAt: String)
 
 @Serializable
 data class ViewingHistoryResponse(
