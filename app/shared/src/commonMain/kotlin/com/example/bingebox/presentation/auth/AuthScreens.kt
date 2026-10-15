@@ -115,7 +115,7 @@ private suspend fun submit(
 
 private fun titleFor(screen: AuthScreen) =
     when (screen) {
-        AuthScreen.Login -> "Welcome to NStream"
+        AuthScreen.Login -> "Welcome to Bingebox"
         AuthScreen.SignUp -> "Create your account"
         AuthScreen.VerifyEmail -> "Verify your email"
         AuthScreen.ForgotPassword -> "Reset your password"

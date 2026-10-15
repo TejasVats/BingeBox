@@ -92,15 +92,19 @@ kotlin {
             implementation(libs.kotlin.test)
         }
         jsMain.dependencies {
+            implementation(libs.androidx.sqlite.web)
             implementation(libs.wrappers.browser)
             implementation(libs.ktor.client.js)
+            implementation(npm("sqlite-wasm-worker", layout.projectDirectory.dir("src/webMain/npm/sqlite-wasm-worker").asFile))
         }
         jvmMain.dependencies {
             implementation(libs.androidx.sqlite.bundled)
             implementation(libs.ktor.client.java)
         }
         wasmJsMain.dependencies {
+            implementation(libs.androidx.sqlite.web)
             implementation(libs.ktor.client.js)
+            implementation(npm("sqlite-wasm-worker", layout.projectDirectory.dir("src/webMain/npm/sqlite-wasm-worker").asFile))
         }
     }
 }

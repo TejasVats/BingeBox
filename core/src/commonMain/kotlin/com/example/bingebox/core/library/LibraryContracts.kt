@@ -35,3 +35,18 @@ data class ApiDataResponse<T>(
     val data: T,
     val requestId: String? = null
 )
+
+@Serializable
+data class PageMetadataResponse(
+    val limit: Int,
+    val offset: Long,
+    val returned: Int,
+    val nextOffset: Long? = null
+)
+
+@Serializable
+data class ApiPageResponse<T>(
+    val data: List<T>,
+    val page: PageMetadataResponse,
+    val requestedId: String? = null
+)

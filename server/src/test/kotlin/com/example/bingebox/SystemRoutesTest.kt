@@ -56,7 +56,7 @@ class SystemRoutesTest {
     @Test
     fun startupConfigurationHasAllRequiredValues() {
         val config: MapApplicationConfig = testServerConfig()
-        assertNotNull(config.propertyOrNull("nstream.database.url"))
+        assertNotNull(config.propertyOrNull("bingebox.database.url"))
     }
 
     @Test

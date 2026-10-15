@@ -21,9 +21,16 @@ fun Route.contentRoutes(watchModeClient: WatchModeClient) {
         }
         get("$API_VERSION_PREFIX/content/search") {
             val query =
-                call.request.queryParameters["query"]?.trim()?.takeIf { it.length >= 2 } ?: return@get
-            call.invalidContentRequest("query must contain least two characters")
-            call.respondWatchMode(watchModeClient.search(query, call.request.queryParameters["types"]))
+                call.request.queryParameters["query"]?.trim()?.takeIf { it.length >= 2 } ?: run {
+                    call.invalidContentRequest("query must contain least two characters")
+                    return@get
+                }
+            call.respondWatchMode(
+                watchModeClient.search(
+                    query,
+                    call.request.queryParameters["types"]
+                )
+            )
         }
         get("$API_VERSION_PREFIX/content/{titleId}") {
             val id = call.titleId() ?: return@get
