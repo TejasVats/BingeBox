@@ -39,14 +39,14 @@ class GroqClientTest {
 
     private fun config() =
         ServerConfig(
-            databaseUrl = "jdbc:postgresql://localhost:5432/nstream_test",
+            databaseUrl = "jdbc:postgresql://localhost:5432/bingebox",
             databaseUser = "bingebox",
             databasePassword = "test",
             redisUri = "redis://localhost:6379",
             jwtSecret = "test-secret",
             smtpHost = "localhost",
             smtpPort = 1025,
-            smtpFrom = "noreply@nstream.test",
+            smtpFrom = "noreply@bingebox.test",
             watchModeApiKey = "test-watchmode-key",
             watchModeBaseUrl = "https://watchmode.test/v1",
             groqApiKey = "test-groq-key",

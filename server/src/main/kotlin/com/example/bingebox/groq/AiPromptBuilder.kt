@@ -9,7 +9,7 @@ data class AiAccountSignals(
     val history: List<ViewingHistoryRecord>,
 )
 
-/** Builds provider prompts only from NStream-owned metadata and the authenticated account's records. */
+/** Builds provider prompts only from Bingebox-owned metadata and the authenticated account's records. */
 class AiPromptBuilder {
     fun recommendations(signals: AiAccountSignals): String =
         """

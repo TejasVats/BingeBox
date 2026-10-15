@@ -6,10 +6,12 @@ import androidx.compose.runtime.setValue
 import com.example.bingebox.core.content.ContentDetailsResponse
 import com.example.bingebox.core.content.StreamingSourceResponse
 import com.example.bingebox.data.auth.remote.BingeBoxApiException
+import com.example.bingebox.domain.model.TrailerPlayerRequest
 import com.example.bingebox.domain.repository.ContentRepository
 import com.example.bingebox.domain.repository.DETAIL_OPENED_ACTIVITY
 import com.example.bingebox.domain.repository.LibraryRepository
 import com.example.bingebox.domain.repository.TRAILER_STARTED_ACTIVITY
+import com.example.bingebox.presentation.screens.TrailerPlayer
 
 data class ContentDetailUiState(
     val titleId: Long? = null,
@@ -26,6 +28,7 @@ data class ContentDetailUiState(
 class ContentDetailViewModel(
     private val contentRepository: ContentRepository,
     private val libraryRepository: LibraryRepository,
+    private val trailerPlayer: TrailerPlayer
 ) {
     var uiState by mutableStateOf(ContentDetailUiState())
         private set
@@ -42,6 +45,7 @@ class ContentDetailViewModel(
                     details = details,
                     sources = sources
                 )
+            runCatching { libraryRepository.cacheContentMetadata(details) }
             recordActivity(details, DETAIL_OPENED_ACTIVITY)
         } catch (exception: BingeBoxApiException) {
             uiState = ContentDetailUiState(titleId = titleId, errorMessage = exception.message)
@@ -59,6 +63,15 @@ class ContentDetailViewModel(
         }
         uiState = uiState.copy(isRecordingTrailer = true, trailerMessage = null)
         recordActivity(details, TRAILER_STARTED_ACTIVITY)
+        val result = trailerPlayer.openTrailer(
+            TrailerPlayerRequest(
+                titleId = details.id,
+                title = details.title,
+                trailerUrl = details.trailerUrl.orEmpty()
+            )
+        )
+        uiState = uiState.copy(isRecordingTrailer = false, trailerMessage = result.message)
+
         uiState =
             uiState.copy(isRecordingTrailer = false, trailerMessage = "Trailer activity recorded.")
     }

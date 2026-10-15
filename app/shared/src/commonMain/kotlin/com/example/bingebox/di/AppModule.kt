@@ -5,16 +5,22 @@ import com.example.bingebox.data.auth.remote.BingeBoxApiClient
 import com.example.bingebox.data.auth.remote.BingeBoxApiConfiguration
 import com.example.bingebox.data.auth.local.InMemoryAuthTokenStorage
 import com.example.bingebox.data.auth.repository.AuthRepositoryImp
+import com.example.bingebox.data.library.LocalLibraryCache
+import com.example.bingebox.data.library.createRoomLocalLibraryCache
 import com.example.bingebox.data.repository.ContentRepositoryImp
 import com.example.bingebox.data.repository.LibraryRepositoryImp
 import com.example.bingebox.domain.auth.AuthRepository
 import com.example.bingebox.domain.repository.ContentRepository
 import com.example.bingebox.domain.repository.LibraryRepository
 import com.example.bingebox.presentation.auth.AuthViewModel
+import com.example.bingebox.presentation.screens.FallBackTrailerPlayer
+import com.example.bingebox.presentation.screens.TrailerPlayer
 import com.example.bingebox.presentation.viewmodel.ContentDetailViewModel
 import com.example.bingebox.presentation.viewmodel.HomeViewModel
 import com.example.bingebox.presentation.viewmodel.NavigationViewModel
 import com.example.bingebox.presentation.viewmodel.SearchViewModel
+import com.example.bingebox.presentation.viewmodel.ViewingHistoryViewModel
+import com.example.bingebox.presentation.viewmodel.WatchListViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
@@ -39,11 +45,15 @@ fun appModule(): Module = module {
     single<AuthRepository> { AuthRepositoryImp(get()) }
     factory { AuthViewModel(get()) }
     single<ContentRepository> { ContentRepositoryImp(get()) }
-    single<LibraryRepository> { LibraryRepositoryImp(get()) }
+    single<LocalLibraryCache> { createRoomLocalLibraryCache("bingebox-library.db") }
+    single<LibraryRepository> { LibraryRepositoryImp(get(), get()) }
+    single<TrailerPlayer> { FallBackTrailerPlayer("Browser",false) }
     factory { NavigationViewModel() }
     factory { HomeViewModel(get()) }
     factory { SearchViewModel(get()) }
-    factory { ContentDetailViewModel(get(), get()) }
+    factory { ContentDetailViewModel(get(), get(), get()) }
+    factory { WatchListViewModel(get()) }
+    factory { ViewingHistoryViewModel(get()) }
 }
 
 val appModule = listOf(

@@ -57,6 +57,5 @@ class AuthRepositoryImp(
     override suspend fun currentAccount(): AccountResponse? = apiClient.currentAccount()
 
     override suspend fun logout() = apiClient.logout()
-    //41:00
 
 }

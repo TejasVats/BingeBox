@@ -18,10 +18,14 @@ import com.example.bingebox.core.content.ContentSummaryResponse
 import com.example.bingebox.core.content.StreamingSourceResponse
 import com.example.bingebox.core.library.ActivityRequest
 import com.example.bingebox.core.library.ApiDataResponse
+import com.example.bingebox.core.library.ApiPageResponse
 import com.example.bingebox.core.library.ViewingHistoryResponse
+import com.example.bingebox.core.library.WatchListItemResponse
+import com.example.bingebox.core.library.WatchListRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.accept
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -119,6 +123,50 @@ class BingeBoxApiClient(
             mapOf("region" to region)
         )
 
+    suspend fun watchList(limit: Int = 20): List<WatchListItemResponse> =
+        authenticatedGet<ApiPageResponse<WatchListItemResponse>>(
+            path = "/api/v1/library/watchlist",
+            queryParameters = mapOf(
+                "limit" to limit.toString(),
+                "offset" to "0"
+            )
+        ).data
+
+    suspend fun addWatchListItem(request: WatchListRequest) : WatchListItemResponse =
+        authenticatedPost<ApiDataResponse<WatchListItemResponse>>(
+            "/api/v1/library/watchlist",
+            request
+        ).data
+
+    suspend fun removeWatchListItem(
+        titleId: Long,
+        mediaType: String
+    ) {
+        var response = authenticatedDeleteResponse(
+            path = "/api/v1/library/watchlist/$titleId",
+            mapOf("mediaType" to mediaType)
+        )
+        if(response.status == HttpStatusCode.Unauthorized && refreshSession()){
+            response =  authenticatedDeleteResponse(
+                "/api/v1/library/watchlist/$titleId",
+                mapOf("mediaType" to mediaType)
+            )
+        }
+
+        if(!response.status.isSuccess()){
+            throw response.toApiException()
+        }
+    }
+
+    suspend fun viewingHistory(limit: Int = 20): List<ViewingHistoryResponse> =
+        authenticatedGet<ApiPageResponse<ViewingHistoryResponse>>(
+            "/api/v1/library/history",
+            mapOf(
+                "limit" to limit.toString(),
+                "offset" to "0",
+            ),
+        ).data
+
     suspend fun recordViewingActivity(request: ActivityRequest): ViewingHistoryResponse =
         authenticatedPost<ApiDataResponse<ViewingHistoryResponse>>(
             "api/v1/library/history",
@@ -152,6 +200,17 @@ class BingeBoxApiClient(
             tokenStorage.read()
                 ?.let { header(HttpHeaders.Authorization, "Bearer ${it.accessToken}") }
         }
+
+    private suspend fun authenticatedDeleteResponse(
+        path: String,
+        queryParameters: Map<String, String?> = emptyMap()
+    ) = httpClient.delete(url(path)) {
+        accept(ContentType.Application.Json)
+        queryParameters.forEach { (key,value) ->
+            if(value!=null) parameter(key,value)
+        }
+        tokenStorage.read()?.let { header(HttpHeaders.Authorization, "Bearer ${it.accessToken}") }
+    }
 
     private suspend fun refreshSession(): Boolean {
         val refreshToken = tokenStorage.read()?.refreshToken ?: return false

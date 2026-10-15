@@ -32,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.bingebox.core.content.ContentDetailsResponse
 import com.example.bingebox.core.content.ContentSummaryResponse
@@ -43,6 +42,8 @@ import com.example.bingebox.presentation.viewmodel.ContentDetailViewModel
 import com.example.bingebox.presentation.viewmodel.HomeViewModel
 import com.example.bingebox.presentation.viewmodel.SearchViewModel
 import com.example.bingebox.presentation.viewmodel.NavigationViewModel
+import com.example.bingebox.presentation.viewmodel.ViewingHistoryViewModel
+import com.example.bingebox.presentation.viewmodel.WatchListViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
@@ -53,6 +54,8 @@ fun MainScreen(
     homeViewModel: HomeViewModel = koinInject(),
     searchViewModel: SearchViewModel = koinInject(),
     detailViewModel: ContentDetailViewModel = koinInject(),
+    watchListViewModel: WatchListViewModel = koinInject(),
+    viewingHistoryViewModel: ViewingHistoryViewModel = koinInject()
 ) {
     val navigationState = navigationViewModel.uiState
     val scope = rememberCoroutineScope()
@@ -68,6 +71,8 @@ fun MainScreen(
             onBack = navigationViewModel::goBack,
             onHome = navigationViewModel::showHome,
             onSearch = navigationViewModel::showSearch,
+            onWatchList = navigationViewModel::showWatchlist,
+            onActivity = navigationViewModel::showViewingDashboard,
             onSignOut = { scope.launch { authViewModel.logout() } },
         )
         Spacer(Modifier.height(16.dp))
@@ -77,16 +82,31 @@ fun MainScreen(
                     viewModel = homeViewModel,
                     onOpenDetails = navigationViewModel::showDetails,
                 )
+
             BingeBoxRoute.Search ->
                 SearchScreen(
                     viewModel = searchViewModel,
                     onOpenDetails = navigationViewModel::showDetails,
                 )
+
             is BingeBoxRoute.Detail ->
                 ContentDetailScreen(
                     titleId = route.titleID,
                     viewModel = detailViewModel,
                 )
+
+            BingeBoxRoute.Watchlist ->
+                WatchListScreen(
+                    viewModel = watchListViewModel,
+                    onOpenDetails = navigationViewModel::showDetails,
+                )
+
+            BingeBoxRoute.ViewingDashboard ->
+                ViewingHistoryScreen(
+                    viewModel = viewingHistoryViewModel,
+                    onOpenDetails = navigationViewModel::showDetails,
+                )
+
             else -> PlaceholderScreen("This section is scheduled for a later phase.")
         }
     }
@@ -98,6 +118,8 @@ private fun ShellTopBar(
     onBack: () -> Unit,
     onHome: () -> Unit,
     onSearch: () -> Unit,
+    onWatchList: () -> Unit,
+    onActivity: () -> Unit,
     onSignOut: () -> Unit,
 ) {
     FlowRow(
@@ -111,6 +133,8 @@ private fun ShellTopBar(
         }
         Button(onClick = onHome) { Text("Home") }
         Button(onClick = onSearch) { Text("Search") }
+        Button(onClick = onWatchList) { Text("WatchList") }
+        Button(onClick = onActivity) { Text("Activity") }
         TextButton(onClick = onSignOut) { Text("Sign out") }
     }
 }
@@ -135,7 +159,11 @@ fun HomeScreen(
         ) {
             items(state.rows) { row ->
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(row.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        row.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(end = 8.dp),
@@ -207,28 +235,32 @@ fun ContentDetailScreen(
         onRetry = { viewModel.openTitle(titleId) },
     ) {
         val details = state.details ?: return@ScreenStateFrame
-        BoxWithConstraints(Modifier.fillMaxSize()) {
-            val wide = maxWidth >= 720.dp
-            if (wide) {
-                Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                    DetailBody(details, Modifier.weight(1f))
-                    SourceList(state.sources, Modifier.weight(1f))
-                }
-            } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    item { DetailBody(details, Modifier.fillMaxWidth()) }
-                    item { SourceList(state.sources, Modifier.fillMaxWidth()) }
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            BoxWithConstraints(Modifier.weight(1f)) {
+                val wide = maxWidth >= 720.dp
+                if (wide) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                        DetailBody(details, Modifier.weight(1f))
+                        SourceList(state.sources, Modifier.weight(1f))
+                    }
+                } else {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        item { DetailBody(details, Modifier.fillMaxWidth()) }
+                        item { SourceList(state.sources, Modifier.fillMaxWidth()) }
+                    }
                 }
             }
+            Button(
+                onClick = { scope.launch { viewModel.startTrailer() } },
+                enabled = state.hasTrailer && !state.isRecordingTrailer,
+            ) {
+                Text(if (state.hasTrailer) "Open trailer" else "Trailer unavailable")
+            }
+            state.trailerMessage?.let { Text(it, color = MaterialTheme.colorScheme.secondary) }
         }
-        Spacer(Modifier.height(12.dp))
-        Button(
-            onClick = { scope.launch { viewModel.startTrailer() } },
-            enabled = state.hasTrailer && !state.isRecordingTrailer,
-        ) {
-            Text(if (state.hasTrailer) "Open trailer" else "Trailer unavailable")
-        }
-        state.trailerMessage?.let { Text(it, color = MaterialTheme.colorScheme.secondary) }
     }
 }
 
@@ -238,8 +270,17 @@ private fun DetailBody(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(details.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-        Text(listOfNotNull(details.type.displayName(), details.year?.toString()).joinToString(" / "))
+        Text(
+            details.title,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            listOfNotNull(
+                details.type.displayName(),
+                details.year?.toString()
+            ).joinToString(" / ")
+        )
         details.overview?.takeIf { it.isNotBlank() }?.let {
             Text(it, style = MaterialTheme.typography.bodyLarge)
         }
@@ -253,13 +294,20 @@ private fun SourceList(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Where to watch", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Text(
+            "Where to watch",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
         if (sources.isEmpty()) {
             Text("No regional sources are available.")
         } else {
             sources.forEach { source ->
                 Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Column(
+                        Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
                         Text(source.name, fontWeight = FontWeight.SemiBold)
                         Text(source.type)
                     }
@@ -268,6 +316,7 @@ private fun SourceList(
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -280,7 +329,12 @@ private fun ContentSummaryCard(
         modifier = Modifier.widthIn(min = 180.dp, max = 220.dp),
     ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(item.title, maxLines = 2, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold)
+            Text(
+                item.title,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                fontWeight = FontWeight.SemiBold
+            )
             Text(listOfNotNull(item.type.displayName(), item.year?.toString()).joinToString(" / "))
         }
     }
@@ -297,7 +351,12 @@ private fun WideContentSummaryCard(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(item.title, maxLines = 2, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold)
+            Text(
+                item.title,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                fontWeight = FontWeight.SemiBold
+            )
             Text(listOfNotNull(item.type.displayName(), item.year?.toString()).joinToString(" / "))
         }
     }
@@ -320,6 +379,7 @@ private fun ScreenStateFrame(
                 Text(errorMessage, color = MaterialTheme.colorScheme.error)
                 Button(onClick = { scope.launch { onRetry() } }) { Text("Retry") }
             }
+
         isEmpty -> Text(emptyMessage)
         else -> content()
     }
@@ -341,6 +401,107 @@ private fun LoadingScreen() {
 private fun PlaceholderScreen(message: String) {
     Text(message)
 }
+
+@Composable
+fun WatchListScreen(
+    viewModel: WatchListViewModel,
+    onOpenDetails: (Long) -> Unit
+) {
+    val state = viewModel.uiState
+    LaunchedEffect(Unit) { viewModel.loadWatchList() }
+    ScreenStateFrame(
+        isLoading = state.isLoading,
+        errorMessage = state.errorMessage,
+        isEmpty = state.isEmpty,
+        emptyMessage = "Your WatchList is empty",
+        onRetry = { viewModel.loadWatchList() }
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            state.message?.let { Text(it, color = MaterialTheme.colorScheme.secondary) }
+            if (state.isFromCache) Text("Showing saved library data.")
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(state.items) { item ->
+                    LibraryItemCard(
+                        titleId = item.titleId,
+                        mediaType = item.mediaType,
+                        timestamp = item.addedAt,
+                        actionLabel = "Remove",
+                        onOpenDetails = onOpenDetails,
+                        onAction = { viewModel.removeItem(item) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ViewingHistoryScreen(
+    viewModel: ViewingHistoryViewModel,
+    onOpenDetails: (Long) -> Unit,
+) {
+    val state = viewModel.uiState
+    LaunchedEffect(Unit) { viewModel.loadViewingHistory() }
+    ScreenStateFrame(
+        isLoading = state.isLoading,
+        errorMessage = state.errorMessage,
+        isEmpty = state.isEmpty,
+        emptyMessage = "No recent activity yet.",
+        onRetry = { viewModel.loadViewingHistory() },
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            state.message?.let { Text(it, color = MaterialTheme.colorScheme.secondary) }
+            if (state.isFromCache) Text("Showing saved recent activity.")
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(state.items) { item ->
+                    LibraryItemCard(
+                        titleId = item.titleId,
+                        mediaType = item.mediaType,
+                        timestamp = "${item.activityType.displayActivityName()} / ${item.occurredAt}",
+                        actionLabel = null,
+                        onOpenDetails = onOpenDetails,
+                        onAction = {},
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LibraryItemCard(
+    titleId: Long,
+    mediaType: String,
+    timestamp: String,
+    actionLabel: String?,
+    onOpenDetails: (Long) -> Unit,
+    onAction: suspend () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    Card(
+        onClick = { onOpenDetails(titleId) },
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Title #$titleId", fontWeight = FontWeight.SemiBold)
+            Text(mediaType.displayName())
+            Text(timestamp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (actionLabel != null) {
+                TextButton(onClick = { scope.launch { onAction() } }) {
+                    Text(actionLabel)
+                }
+            }
+        }
+    }
+}
+
+private fun String.displayActivityName(): String =
+    when (this) {
+        "detail_opened" -> "Details opened"
+        "trailer_started" -> "Trailer started"
+        else -> replaceFirstChar { it.uppercase() }
+    }
 
 private fun String.displayName(): String =
     when (this) {

@@ -45,4 +45,12 @@ class NavigationViewModel : ViewModel() {
                 else -> uiState.copy(backStack = currentStack + route)
             }
     }
+
+    fun showWatchlist() {
+        pushOrReplaceTop(BingeBoxRoute.Watchlist)
+    }
+
+    fun showViewingDashboard() {
+        pushOrReplaceTop(BingeBoxRoute.ViewingDashboard)
+    }
 }

@@ -57,15 +57,15 @@ class WatchmodeClientTest {
 
     private fun config() =
         ServerConfig(
-            "jdbc:postgresql://localhost:5432/nstream_test",
-            "nstream",
+            "jdbc:postgresql://localhost:5432/bingebox_test",
+            "bingebox",
             "test",
             "redis://localhost:6379",
             "test-secret",
             "localhost",
             1025,
             false, // migrateOnStart
-            "noreply@nstream.test",
+            "noreply@bingebox.test",
             "test-key",
             "https://watchmode.test/v1",
             "test-groq-key",

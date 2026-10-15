@@ -42,7 +42,7 @@ class LibraryRepositoryIntegrationTest {
                         jwtSecret = "test-jwt-secret-that-is-long-enough",
                         smtpHost = "localhost",
                         smtpPort = 1025,
-                        smtpFrom = "noreply@nstream.test",
+                        smtpFrom = "noreply@bingebox.test",
                         watchModeApiKey = "test-key",
                         watchModeBaseUrl = "http://localhost",
                         groqApiKey = "test-groq-key",
@@ -55,8 +55,8 @@ class LibraryRepositoryIntegrationTest {
                 DatabaseMigrations.migrate(config)
 
                 val accounts = ExposedAccountRepository()
-                val firstAccount = accounts.create("first-${UUID.randomUUID()}@nstream.test", "hash")
-                val secondAccount = accounts.create("second-${UUID.randomUUID()}@nstream.test", "hash")
+                val firstAccount = accounts.create("first-${UUID.randomUUID()}@bingebox.test", "hash")
+                val secondAccount = accounts.create("second-${UUID.randomUUID()}@bingebox.test", "hash")
                 val watchlist = ExposedWatchlistRepository()
                 val history = ExposedViewingHistoryRepository()
 
