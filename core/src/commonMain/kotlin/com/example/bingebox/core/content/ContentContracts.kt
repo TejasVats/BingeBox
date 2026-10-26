@@ -3,6 +3,26 @@ package com.example.bingebox.core.content
 import kotlinx.serialization.Serializable
 
 @Serializable
+enum class TrailerSourceType {
+    DIRECT,
+    EXTERNAL,
+}
+
+@Serializable
+enum class TrailerStreamFormat {
+    MP4,
+    HLS,
+    UNKNOWN,
+}
+
+@Serializable
+data class TrailerSourceResponse(
+    val url: String,
+    val sourceType: TrailerSourceType,
+    val format: TrailerStreamFormat = TrailerStreamFormat.UNKNOWN,
+)
+
+@Serializable
 data class ContentPageResponse(
     val items: List<ContentSummaryResponse>,
     val page: Int,
@@ -28,7 +48,7 @@ data class ContentDetailsResponse(
     val runtimeMinutes: Int? = null,
     val year: Int? = null,
     val releaseDate: String? = null,
-    val trailerUrl: String? = null,
+    val trailerSource: TrailerSourceResponse? = null,
     val similarTitleIds: List<Long> = emptyList()
 )
 

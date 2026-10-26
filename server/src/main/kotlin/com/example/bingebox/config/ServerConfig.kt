@@ -18,6 +18,7 @@ data class ServerConfig(
     val groqBaseUrl: String,
     val groqFastModel: String,
     val groqAdvanceModel: String,
+    val licensedTrailersJson: String?
 )
 
 object ServerConfigLoader {
@@ -60,8 +61,15 @@ object ServerConfigLoader {
             environment.optionalValue("bingebox.groq.fast-model", "BINGEBOX_GROQ_FAST_MODEL")
                 ?: "llama-3.1-8b-instant",
         groqAdvanceModel =
-            environment.optionalValue("bingebox.groq.advanced-model", "BINGEBOX_GROQ_ADVANCED_MODEL")
+            environment.optionalValue(
+                "bingebox.groq.advanced-model",
+                "BINGEBOX_GROQ_ADVANCED_MODEL"
+            )
                 ?: "llama-3.3-70b-versatile",
+        licensedTrailersJson = environment.optionalValue(
+            "bingebox.trailers.licensed-json",
+            "BINGEBOX_LICENSED_TRAILERS_JSON"
+        ),
     )
 
     private fun ApplicationEnvironment.requiredValue(

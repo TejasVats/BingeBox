@@ -11,16 +11,11 @@ interface TrailerPlayer {
 
 class FallBackTrailerPlayer(
     override val modeName: String,
-    override val supportsInLinePlayback: Boolean
-): TrailerPlayer{
+    override val supportsInLinePlayback: Boolean,
+    private val fallbackMessage: String
+) : TrailerPlayer {
     override suspend fun openTrailer(request: TrailerPlayerRequest): TrailerPlaybackResult {
-        val message =
-            if (supportsInLinePlayback) {
-                "Opening trailer for ${request.title}."
-            } else {
-                "Trailer playback uses the platform browser on this target."
-            }
-        return TrailerPlaybackResult(message, isSupported = true)
+        return TrailerPlaybackResult(fallbackMessage, isSupported = supportsInLinePlayback)
     }
 
 }

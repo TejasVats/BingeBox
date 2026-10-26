@@ -64,7 +64,7 @@ class RoomLocalLibraryCache(
                 mediaType = details.type,
                 year = details.year,
                 overview = details.overview,
-                trailerUrl = details.trailerUrl,
+                trailerUrl = details.trailerSource?.url,
                 cachedAt = "refreshed",
             ),
         )
