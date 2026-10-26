@@ -32,6 +32,8 @@ argon2 = "2.12"
 testcontainers = "1.21.3"
 jakarta-mail = "2.1.3"
 angus-mail = "2.0.4"
+androidx-media3 = "1.10.1"
+javafx = "23"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -103,6 +105,10 @@ ktor-serverAuth = { module = "io.ktor:ktor-server-auth-jvm", version.ref = "ktor
 ktor-serverAuthJwt = { module = "io.ktor:ktor-server-auth-jwt-jvm", version.ref = "ktor" }
 jakarta-mail = { module = "jakarta.mail:jakarta.mail-api", version.ref = "jakarta-mail" }
 angus-mail = { module = "org.eclipse.angus:angus-mail", version.ref = "angus-mail" }
+
+# Media 3
+androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "androidx-media3" }
+androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "androidx-media3" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

@@ -255,9 +255,15 @@ fun ContentDetailScreen(
             }
             Button(
                 onClick = { scope.launch { viewModel.startTrailer() } },
-                enabled = state.hasTrailer && !state.isRecordingTrailer,
+                enabled = state.canPlayTrailer && !state.isRecordingTrailer,
             ) {
-                Text(if (state.hasTrailer) "Open trailer" else "Trailer unavailable")
+                Text(
+                    when {
+                        state.canPlayTrailer -> "Play Trailer"
+                        state.hasTrailerMetadata -> "Direct Trailer unavailable"
+                        else -> "Trailer unavailable"
+                    }
+                )
             }
             state.trailerMessage?.let { Text(it, color = MaterialTheme.colorScheme.secondary) }
         }

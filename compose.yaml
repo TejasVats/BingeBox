@@ -20,7 +20,7 @@ services:
       BINGEBOX_GROQ_BASE_URL: ${BINGEBOX_GROQ_BASE_URL:-https://api.groq.com/openai/v1}
       BINGEBOX_GROQ_FAST_MODEL: ${BINGEBOX_GROQ_FAST_MODEL:-llama-3.1-8b-instant}
       BINGEBOX_GROQ_ADVANCED_MODEL: ${BINGEBOX_GROQ_ADVANCED_MODEL:-llama-3.3-70b-versatile}
-#      BINGEBOX_LICENSED_TRAILERS_JSON: ${BINGEBOX_LICENSED_TRAILERS_JSON:-}
+      BINGEBOX_LICENSED_TRAILERS_JSON: ${BINGEBOX_LICENSED_TRAILERS_JSON:-}
     depends_on:
       postgres:
         condition: service_healthy

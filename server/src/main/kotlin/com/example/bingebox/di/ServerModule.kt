@@ -24,7 +24,9 @@ import com.example.bingebox.repository.RefreshSessionRepository
 import com.example.bingebox.repository.ViewingHistoryRepository
 import com.example.bingebox.repository.WatchListRepository
 import com.example.bingebox.security.RedisRateLimiter
+import com.example.bingebox.watchmode.ContentCatalogService
 import com.example.bingebox.watchmode.ContentResponseCache
+import com.example.bingebox.watchmode.LicensedTrailerCatalog
 import com.example.bingebox.watchmode.WatchModeClient
 import com.example.bingebox.watchmode.WatchModeResponseCache
 import org.koin.core.module.Module
@@ -59,4 +61,6 @@ fun serverModule(config: ServerConfig): Module = module {
             get(), get(), get()
         )
     }
+    single { LicensedTrailerCatalog.fromConfig(get()) }
+    single { ContentCatalogService(get(), get()) }
 }

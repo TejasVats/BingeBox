@@ -2,7 +2,7 @@ package com.example.bingebox.routes
 
 import com.example.bingebox.api.API_VERSION_PREFIX
 import com.example.bingebox.plugins.ApiError
-import com.example.bingebox.watchmode.WatchModeClient
+import com.example.bingebox.watchmode.ContentCatalogService
 import com.example.bingebox.watchmode.WatchModeResults
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -12,12 +12,12 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 
-fun Route.contentRoutes(watchModeClient: WatchModeClient) {
+fun Route.contentRoutes(contentCatalogService: ContentCatalogService) {
     authenticate("auth-jwt") {
         get("$API_VERSION_PREFIX/content/titles") {
             val types = call.request.queryParameters["types"] ?: "movie, tv_series"
             val page = call.page() ?: return@get
-            call.respondWatchMode(watchModeClient.listTitles(types, call.region(), page))
+            call.respondWatchMode(contentCatalogService.listTitles(types, call.region(), page))
         }
         get("$API_VERSION_PREFIX/content/search") {
             val query =
@@ -26,7 +26,7 @@ fun Route.contentRoutes(watchModeClient: WatchModeClient) {
                     return@get
                 }
             call.respondWatchMode(
-                watchModeClient.search(
+                contentCatalogService.search(
                     query,
                     call.request.queryParameters["types"]
                 )
@@ -34,11 +34,11 @@ fun Route.contentRoutes(watchModeClient: WatchModeClient) {
         }
         get("$API_VERSION_PREFIX/content/{titleId}") {
             val id = call.titleId() ?: return@get
-            call.respondWatchMode(watchModeClient.details(id))
+            call.respondWatchMode(contentCatalogService.details(id))
         }
         get("$API_VERSION_PREFIX/content/{titleId}/sources") {
             val id = call.titleId() ?: return@get
-            call.respondWatchMode(watchModeClient.sources(id, call.region()))
+            call.respondWatchMode(contentCatalogService.sources(id, call.region()))
         }
     }
 }

@@ -3,6 +3,8 @@ package com.example.bingebox.watchmode
 import com.example.bingebox.core.content.ContentDetailsResponse
 import com.example.bingebox.core.content.ContentPageResponse
 import com.example.bingebox.core.content.ContentSummaryResponse
+import com.example.bingebox.core.content.TrailerSourceResponse
+import com.example.bingebox.core.content.TrailerSourceType
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -76,6 +78,11 @@ internal fun WatchModeDetailsDTO.toDetails() = ContentDetailsResponse(
     runtimeMinutes,
     year,
     releaseDate,
-    trailer,
+    trailer?.takeIf { it.isNotBlank() }?.let {
+        TrailerSourceResponse(
+            url = it,
+            sourceType = TrailerSourceType.EXTERNAL
+        )
+    },
     similarTitles ?: emptyList()
 )
